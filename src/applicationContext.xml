@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd" xmlns:tx="http://www.springframework.org/schema/tx">
+
+
+ <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+            </list>
+        </property>
+    </bean> 
+
+
+
+
+    <bean id="dataSource"
+        class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName"  value="com.mysql.jdbc.Driver"></property>
+        <property name="url" value="jdbc:mysql://localhost:3306/sshtest"></property>
+        <property name="username" value="root"></property>
+        <property name="password" value="xing10"></property>
+    </bean>
+    <bean id="sessionFactory"
+        class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">
+                    org.hibernate.dialect.MySQLDialect
+                </prop>
+                <prop key="hibernate.show_sql">
+                    true
+                </prop>
+            </props>
+        </property>
+        <property name="mappingResources">
+            <list>
+
+                <value>com/ssh/entity/TUser.hbm.xml</value>
+                <value>com/ssh/entity/Searchligands.hbm.xml</value>
+                <value>com/ssh/entity/Ligands9.hbm.xml</value>
+                <value>com/ssh/entity/Results.hbm.xml</value>
+                <value>com/ssh/entity/Pdb.hbm.xml</value></list>
+        </property>
+        <property name="annotatedClasses">
+        	<list>
+        		<value>com.ssh.entity.Protein</value></list>
+        </property></bean>
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+    <bean id="baseTransactionProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean" abstract="true">
+        <property name="transactionManager" ref="transactionManager" /> 
+        <property name="transactionAttributes">
+            <props>
+                <!-- 指明进行事务管理业务方法名[*是通配符] -->
+                <prop key="add*">PROPAGATION_REQUIRED</prop>
+                 <prop key="save*">PROPAGATION_REQUIRED</prop>
+                <prop key="edit*">PROPAGATION_REQUIRED</prop>
+                <prop key="del*">PROPAGATION_REQUIRED</prop>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+    </bean>
+
+     <!-- 登录Action -->
+    <bean id="loginAction" class="com.ssh.action.LoginAction" scope="singleton">
+    <property name="userService" ref="userService" />
+    </bean>
+    
+    <!-- User显示列表Action -->
+    <bean id="ListUserAction" class="com.ssh.action.ListUserAction" scope="singleton">
+    <property name="userService" ref="userService" />
+    </bean>
+    
+    <!-- Results显示列表Action -->
+    <bean id="ListResultsAction" class="com.ssh.action.ListResultsAction" scope="singleton">
+    <property name="resultsService" ref="resultsService"></property>
+    </bean>
+    
+    <!-- User下拉列表Action -->
+    <bean id="XiaLaUserAction" class="com.ssh.action.XiaLaUserAction" scope="singleton">
+    <property name="xiaLaUserService" ref="xiaLaUserService"></property>
+    </bean>
+    
+    <!-- Ligands显示列表Action -->
+    <bean id="ListLigandsAction" class="com.ssh.action.ListLigandsAction" scope="singleton">
+    <property name="ligandsService" ref="ligandsService"></property>
+    </bean>
+    
+    <!-- Ligands单独查询Action -->
+    <bean id="queryLigandsByZincid" class="com.ssh.action.queryLigandsByZincid" scope="singleton">
+    <property name="ligandsService" ref="ligandsService"></property>
+    </bean>
+    
+    <!-- pdb显示列表Action -->
+    <bean id="ListPdbAction" class="com.ssh.action.ListPdbAction" scope="singleton">
+    <property name="pdbService" ref="pdbService"></property>
+    </bean>
+    
+    <!-- User下拉列表DAO(listAction测试专用) -->
+    <bean id="xiaLaUserDAO" class="com.ssh.daoImpl.XiaLaUserDAOImpl" parent="daoTemplate"></bean>
+    <bean id="xiaLaUserService" parent="baseTransactionProxy">
+        <property name="target">
+             <bean class="com.ssh.serviceImpl.XiaLaUserServiceImpl">
+                 <property name="xiaLaUserDAO" ref="xiaLaUserDAO">
+                 </property>
+             </bean>
+        </property>
+    </bean>
+    
+    <!-- ResultsDAO -->
+    <bean id="resultsDAO" class="com.ssh.daoImpl.ResultsDAOImpl" parent="daoTemplate"></bean>
+    <bean id="resultsService" parent="baseTransactionProxy">
+        <property name="target">
+             <bean class="com.ssh.serviceImpl.ResultsServiceImpl">
+                 <property name="resultsDAO" ref="resultsDAO">
+                 </property>
+             </bean>
+        </property>
+    </bean>
+    
+    <!-- LigandsDAO(其实是配置两个Impl) -->
+    <bean id="ligandsDAO" class="com.ssh.daoImpl.LigandsDAOImpl" parent="daoTemplate"></bean>
+    <bean id="ligandsService" parent="baseTransactionProxy">
+        <property name="target">
+             <bean class="com.ssh.serviceImpl.LigandsServiceImpl">
+                 <property name="ligandsDAO" ref="ligandsDAO">
+                 </property>
+             </bean>
+        </property>
+    </bean>
+    
+    <!-- PdbDAO -->
+    <bean id="pdbDAO" class="com.ssh.daoImpl.PdbDAOImpl" parent="daoTemplate"></bean>
+    <bean id="pdbService" parent="baseTransactionProxy">
+        <property name="target">
+             <bean class="com.ssh.serviceImpl.PdbServiceImpl">
+                 <property name="pdbDAO" ref="pdbDAO">
+                 </property>
+             </bean>
+        </property>
+    </bean>
+    
+    <!-- userDAO  -->
+    <bean id="userDAO" class="com.ssh.daoImpl.UserDAOImpl" parent="daoTemplate" />
+    <bean id="userService" parent="baseTransactionProxy">
+        <property name="target">
+            <bean class="com.ssh.serviceImpl.UserServiceImpl">
+                <property name="userDAO" ref="userDAO"/>
+            </bean>
+        </property>
+    </bean> 
+
+        <bean id="daoTemplate" abstract="true">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager" /></beans>

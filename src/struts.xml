@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+    <package name="default" namespace="/" extends="struts-default">
+        <action name="login" class="com.ssh.action.LoginAction" method="login">
+           <result name="login">login.jsp</result>
+           <result name="ok">loginOk.jsp</result>
+           <result name="error">loginError.jsp</result>
+        </action>
+        
+        <action name="listUser" class="ListUserAction">  
+            <result name="success">/testjson.jsp</result> 
+            <!-- 直接被json数据拦截了，不知为何 --> 
+        </action>  
+        
+        <action name="XiaLaUserAction" class="XiaLaUserAction">
+            <result name="success">/index.jsp</result>
+        </action>
+        
+        <action name="ListLigandsAction" class="ListLigandsAction">
+            <result name="success">/index.jsp</result>
+        </action>
+        
+        <action name="ListResultsAction" class="ListResultsAction">
+            <result name="success">/index.jsp</result>
+        </action>
+        
+        <!-- ligands单独查询 -->
+        <action name="queryLigandsByZincid" class="com.ssh.action.queryLigandsByZincid">
+            <result name="success">/index.jsp</result>
+        </action>
+        
+        <action name="ListPdbAction" class="com.ssh.action.ListPdbAction">
+            <result name="success">/index.jsp</result>
+        </action>
+        
+    </package>
+</struts>    
